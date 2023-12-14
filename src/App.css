@@ -1,0 +1,46 @@
+.container_design {
+  max-width: 100%;
+  width: 90%;
+  margin: auto;
+}
+.filter_design {
+  border: 2px solid grey;
+  padding: 20px;
+}
+.out_tab {
+  max-width: 100%;
+  width: 80%;
+  margin: 20px auto auto auto;
+}
+table {
+  border: 1px solid grey;
+}
+.field_row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.add_rows {
+  margin: 20px;
+}
+.btn_theme {
+  width: 130px;
+  height: 50px;
+  background-color: darkgrey;
+  border: none;
+  cursor: pointer;
+}
+.select_theme {
+  height: 50px;
+  width: 120px;
+  border: none;
+  cursor: pointer;
+}
+.search_theme {
+  appearance: none;
+  border: none;
+  height: 50px;
+}
+/* input::placeholder{
+ font-size:20px;
+} */
