@@ -1,21 +1,29 @@
 import "./App.css";
 import DataHead from "./UserData/DataHead";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const [selectedPrettyName, setselectedPrettyName] = useState(""); // to select a dropdown
 
-  console.log("check-->9", selectedPrettyName);
   const [search, setSearch] = useState(""); //search from the json data
-  console.log(search);
+  const [userData, setUserData] = useState(DataHead);
+  const [condition, setConditions] = useState<Array<string>>([]);
+
+  const conditionTypes: any = {
+    followers: ["<=", ">="],
+    following: ["<=", ">="],
+    "Screen Name": ["contains", "equals"],
+    Location: ["contains", "equals"],
+    Verified: ["yes", "no"],
+  };
 
   const [addBtn, setaddBtn] = useState([
     //add the new field
     {
       id: "1",
       prettyname: " ",
-      textnumber: "",
-      removeBtn: "",
+      condition: "",
+      value: "",
     },
   ]);
 
@@ -26,52 +34,82 @@ function App() {
       {
         id: "",
         prettyname: "",
-        textnumber: "",
-        removeBtn: "",
+        condition: "",
+        value: "",
       },
     ]);
   };
 
   const handleRemoveBtn = (index: any) => {
-    //delete the row
-    const newAddDet = [...addBtn];
-    newAddDet.splice(index, 1);
+    const newAddDet = addBtn.filter((item, id) => id !== index);
+    const c = condition?.filter((item, id) => id !== index - 1);
     setaddBtn(newAddDet);
+    setConditions(c);
   };
 
-  console.log(
-    DataHead.filter(
-      (item) =>
-        item.screen_title.toLowerCase().includes(search) ||
-        item.name.toUpperCase().includes(search) ||
-        item.location_title.toLowerCase().includes(search) ||
-        item.verify_title.toLowerCase().includes(search)
-    )
-  );
+  function getFinalOutput(a: any, b: any) {
+    console.log("-----------------", a, b);
 
-  const changeSelectOption = (event: any) => {
-    setselectedPrettyName(event.target.value);
-  };
+    let finalOutput = a[0];
 
-  const screenName = ["<=", ">="];
-  const location = ["contains", "equals"];
-  const verfied = ["yes","no"];
+    for (let i = 1; i < a.length; i++) {
+      const operator = b[i - 1];
+      const currentValue = a[i];
 
-  let type = null;
-  let options: any = null;
+      if (operator === "&&") {
+        finalOutput = finalOutput && currentValue;
+      } else if (operator === "||") {
+        finalOutput = finalOutput || currentValue;
+      }
+    }
 
-  if (selectedPrettyName === "Screen Name") {
-    type = screenName;
-  } else if (selectedPrettyName === "Location") {
-    type = location;
-  } else if(selectedPrettyName === "Verfied") {
-    type = verfied;
+    return finalOutput;
   }
 
-  if (type) {
-    options = type.map((item) => <option key={item}>{item}</option>);
-  }
-  console.log("check->54", type);
+  useEffect(() => {
+    const final = addBtn.filter((y) => y.condition && y.prettyname && y.value);
+    if (final.length) {
+      const t = DataHead.filter((w: any) => {
+        const sample = final.map((r) => {
+          console.log(
+            "🚀 ~ file: App.tsx:50 ~ sample ~ r:",
+            w[r.prettyname],
+            r.condition,
+            r.value
+          );
+          switch (r.condition) {
+            case "<=":
+              return Number(w[r.prettyname]) <= Number(r.value);
+            case ">=":
+              return Number(w[r.prettyname]) >= Number(r.value);
+            case "contains":
+              return w[r.prettyname]
+                .toLowerCase()
+                .includes(r.value.toLowerCase());
+            case "equals":
+              return w[r.prettyname].toLowerCase() === r.value.toLowerCase();
+            case "yes":
+              return w[r.prettyname].toLowerCase() === "yes";
+            case "no":
+              return w[r.prettyname].toLowerCase() === "no";
+            default:
+              return false;
+          }
+        });
+        const finalout = getFinalOutput(sample, condition);
+        console.log(
+          "🚀 ~ file: App.tsx:50 ~ sample ~ sample:",
+          sample,
+          finalout
+        );
+        return finalout;
+      });
+      console.log("🚀 ~ file: App.tsx:51 ~ t ~ t:", t);
+      setUserData(t);
+    } else {
+      setUserData(DataHead);
+    }
+  }, [addBtn, condition]);
 
   return (
     <>
@@ -82,22 +120,72 @@ function App() {
             + Add Filter
           </button>
           {addBtn.map((item, idx) => {
+            console.log("🚀 ~ file: App.tsx:85 ~ {addBtn.map ~ item:", item);
             return (
               <>
                 <div className="field_row">
-                  <div key={idx} className="add_rows">
-                    <p>Where</p>
-                  </div>
+                  {idx === 0 && (
+                    <div key={idx} className="add_rows">
+                      <p>Where</p>
+                    </div>
+                  )}
+                  {idx > 0 && (
+                    <div className="add_rows">
+                      <select
+                        className="select_theme"
+                        onChange={(e) => {
+                          const t = [...condition];
+                          t[idx - 1] = e.target.value;
+                          console.log("🚀 ~ file: App.tsx:110 ~ t:", t);
+                          setConditions(t);
+                        }}
+                      >
+                        <option>choose...</option>
+                        <option
+                          value="&&"
+                          selected={condition[idx - 1] === "&&"}
+                        >
+                          AND
+                        </option>
+                        <option
+                          value="||"
+                          selected={condition[idx - 1] === "||"}
+                        >
+                          OR...
+                        </option>
+                      </select>
+                    </div>
+                  )}
                   <div className="add_rows">
                     <select
                       className="select_theme"
                       // name={item.prettyname}
-                      onChange={changeSelectOption}
+                      onChange={(e) => {
+                        const t = [...addBtn];
+                        t[idx].prettyname = e.target.value;
+                        console.log(
+                          "🚀 ~ file: App.tsx:99 ~ {addBtn.map ~ t:",
+                          t
+                        );
+                        setaddBtn(t);
+                      }}
                     >
                       <option>choose...</option>
-                      <option>Screen Name</option>
-                      <option>Location</option>
-                      <option>Verified</option>
+                      <option selected={item.prettyname === "followers"}>
+                        followers
+                      </option>
+                      <option selected={item.prettyname === "following"}>
+                        following
+                      </option>
+                      <option selected={item.prettyname === "Screen Name"}>
+                        Screen Name
+                      </option>
+                      <option selected={item.prettyname === "Location"}>
+                        Location
+                      </option>
+                      <option selected={item.prettyname === "Verified"}>
+                        Verified
+                      </option>
                       {/* {dataPretty.map((item, opt) => {
                         return (
                           <option key={opt} value={item.id}>
@@ -108,22 +196,44 @@ function App() {
                     </select>
                   </div>
                   <div className="add_rows">
-                    <select className="select_theme">{options}</select>
+                    <select
+                      className="select_theme"
+                      onChange={(e) => {
+                        const t = [...addBtn];
+                        t[idx].condition = e.target.value;
+                        if (t[idx].prettyname === "Verified") {
+                          t[idx].value = e.target.value;
+                        }
+                        console.log("🚀 ~ file: App.tsx:110 ~ t:", t);
+                        setaddBtn(t);
+                      }}
+                    >
+                      <option>choose...</option>
+                      {conditionTypes[item.prettyname]?.map((r: any) => (
+                        <option key={r}>{r}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="add_rows">
-                    <input
-                      className="search_theme"
-                      name={item.textnumber}
-                      onChange={(e) => setSearch(e.target.value)}
-                      type="text"
-                      placeholder="value"
-                    />
-                  </div>
+                  {item.prettyname !== "Verified" && (
+                    <div className="add_rows">
+                      <input
+                        className="search_theme"
+                        name={item.value}
+                        onChange={(e) => {
+                          const t = [...addBtn];
+                          t[idx].value = e.target.value;
+                          setaddBtn(t);
+                        }}
+                        type="text"
+                        placeholder="value"
+                      />
+                    </div>
+                  )}
                   <div className="add_rows">
                     <button
                       className="btn_theme"
-                      value={item.removeBtn}
-                      onClick={handleRemoveBtn}
+                      // value={item.removeBtn}
+                      onClick={() => handleRemoveBtn(idx)}
                       type="button"
                     >
                       Delete
@@ -147,21 +257,15 @@ function App() {
             <th>Verified</th>
           </tr>
 
-          {DataHead.filter(
-            (item) =>
-              item.screen_title.toLowerCase().includes(search) ||
-              item.name.toUpperCase().includes(search) ||
-              item.location_title.toLowerCase().includes(search) ||
-              item.verify_title.toLowerCase().includes(search)
-          ).map((itemh, idxh) => {
+          {userData.map((itemh, idxh) => {
             return (
               <tr key={idxh} className="heading_data">
                 <td>{itemh.name}</td>
-                <td>{itemh.screen_title}</td>
-                <td>{itemh.follow_title}</td>
-                <td>{itemh.following_title}</td>
-                <td>{itemh.location_title}</td>
-                <td>{itemh.verify_title}</td>
+                <td>{itemh["Screen Name"]}</td>
+                <td>{itemh.followers}</td>
+                <td>{itemh.following}</td>
+                <td>{itemh.Location}</td>
+                <td>{itemh.Verified}</td>
               </tr>
             );
           })}
