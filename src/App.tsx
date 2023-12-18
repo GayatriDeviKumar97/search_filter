@@ -3,11 +3,8 @@ import DataHead from "./UserData/DataHead";
 import { useEffect, useState } from "react";
 
 function App() {
-  const [selectedPrettyName, setselectedPrettyName] = useState(""); // to select a dropdown
-
-  const [search, setSearch] = useState(""); //search from the json data
-  const [userData, setUserData] = useState(DataHead);
-  const [condition, setConditions] = useState<Array<string>>([]);
+  const [userData, setUserData] = useState(DataHead); // to manage user data
+  const [condition, setConditions] = useState<Array<string>>([]); // to manage and/or conditions
 
   const conditionTypes: any = {
     followers: ["<=", ">="],
@@ -21,7 +18,7 @@ function App() {
     //add the new field
     {
       id: "1",
-      prettyname: " ",
+      prettyname: "",
       condition: "",
       value: "",
     },
@@ -40,13 +37,15 @@ function App() {
     ]);
   };
 
+  // handle delete query by users
   const handleRemoveBtn = (index: any) => {
-    const newAddDet = addBtn.filter((item, id) => id !== index);
-    const c = condition?.filter((item, id) => id !== index - 1);
+    const newAddDet = addBtn.filter((item, id) => id !== index); // user search query remove
+    const c = condition?.filter((item, id) => id !== index - 1); // and / or condition remove
     setaddBtn(newAddDet);
     setConditions(c);
   };
 
+  // Evaluate and get final condition result
   function getFinalOutput(a: any, b: any) {
     console.log("-----------------", a, b);
 
@@ -151,7 +150,7 @@ function App() {
                           value="||"
                           selected={condition[idx - 1] === "||"}
                         >
-                          OR...
+                          OR
                         </option>
                       </select>
                     </div>
